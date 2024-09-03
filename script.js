@@ -16,15 +16,15 @@ jQuery(document).ready(function($) {
 		jQuery(this).parents('.botIcon').addClass('showMessenger');
 	});
 	
-	$(document).on("submit", "#messenger", function(e) {
+	$(document).on("submit", "#messenger", async function(e) {
 		e.preventDefault();
 
 		var val = $("[name=msg]").val().toLowerCase();
+        const API_KEY = "AIzaSyCoW7wGuiF_uhs7M2uSNAxl56x3YjJ45Yc";
+        const API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key="+API_KEY;
 		var mainval = $("[name=msg]").val();
 		name = '';
-		nowtime = new Date();
-		nowhoue = nowtime.getHours();
-
+        
 		function userMsg(msg) {
 			$('.Messages_list').append('<div class="msg user"><span class="avtr"><figure style="background-image: url(asset/avatar.png)"></figure></span><span class="responsText">' + mainval + '</span></div>');
 		};
@@ -35,81 +35,23 @@ jQuery(document).ready(function($) {
 
 
 		userMsg(mainval);
-		if( val.indexOf("hello") > -1 || val.indexOf("hi") > -1 || val.indexOf("good morning") > -1 || val.indexOf("good afternoon") > -1 || val.indexOf("good evening") > -1 || val.indexOf("good night") > -1 ) {
-			if(nowhoue >= 12 && nowhoue <= 16) {
-				appendMsg('good afternoon');
-			} else if(nowhoue >= 10 && nowhoue <= 12) {
-				appendMsg('hi');
-			} else if(nowhoue >= 0 && nowhoue <= 10) {
-				appendMsg('good morning');
-			} else {
-				appendMsg('good evening');
-			}
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {"Content-Type" : "application/json"},
+            body: JSON.stringify({
+                contents: [{
+                    role: "user",
+                    parts: [{text:val}]
+                }]
+            })
+        });
 
-			appendMsg("what's you name?");
-
-		} else if( val.indexOf("i have problem with") > -1) {
-			if (val.indexOf("girlfriend") > -1 || val.indexOf("gf") > -1) {
-
-				appendMsg("take out your girlfriend, for dinner or movie.");
-				appendMsg("is it helpful? (yes/no)");
-
-			} else if (val.indexOf("boyfriend") > -1 || val.indexOf("bf") > -1) {
-				appendMsg("bye something for him.");
-				appendMsg("is it helpful? (yes/no)");
-			} else {
-				appendMsg("sorry, i'm not able to get you point, please ask something else.");
-			}
-		} else if( val.indexOf("yes") > -1) {
-
-			var nowtime = new Date();
-			var nowhoue = nowtime.getHours();
-			appendMsg("it's my pleaser that i can help you");
-
-			saybye();
-		} else if( val.indexOf("no") > -1) {
-
-			var nowtime = new Date();
-			var nowhoue = nowtime.getHours();
-			appendMsg("it's my bad that i can't able to help you. please try letter");
-
-			saybye();
-		} else if( val.indexOf("my name is ") > -1 || val.indexOf("i am ") > -1 || val.indexOf("i'm ") > -1 || val.split(" ").length < 2 ) {/*|| mainval != ""*/
-			// var name = "";
-			if(val.indexOf("my name is") > -1) {
-				name = val.replace("my name is", "");
-			}
-
-			else if(val.indexOf("i am") > -1) {
-				name = val.replace("i am", "");
-			}
-
-			else if(val.indexOf("i'm") > -1) {
-				name = val.replace("i'm", "");
-			}
-
-			else {
-				name = mainval;
-			}
-
-			// appendMsg("hi " + name + ", how can i help you?");
-			appendMsg("hi " + name + ", how can i help you?");
-		} else {
-			appendMsg("sorry i'm not able to understand what do you want to say");
-		}
-
-		function saybye() {
-			if (nowhoue <= 10) {
-				appendMsg(" have nice day! :)");
-			} else if (nowhoue >= 11 || nowhoue <= 20) {
-				appendMsg(" bye!");
-			} else {
-				appendMsg(" good night!");
-			}
-		}
-
+        const data = await response.json();
+    
+        const apiResponse = data?.candidates[0].content.parts[0].text;
+        appendMsg(apiResponse);
+	
 		var lastMsg = $('.Messages_list').find('.msg').last().offset().top;
 		$('.Messages').animate({scrollTop: lastMsg}, 'slow');
 	});
-	/* Chatboat Code */
 })
